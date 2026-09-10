@@ -39,7 +39,7 @@ export function CircuitDetail() {
 
       <div className="callout warn" style={{ marginTop: 14 }}>
         <div className="t">
-          {c.status === "已验证" ? "🟢 已验证" : c.status === "失败" ? "🔴 验证失败" : "🟡 待验证"}
+          {c.status === "已验证" ? "🟢 已验证" : c.status === "验证失败" ? "🔴 验证失败" : "🟡 待验证"}
         </div>
         <p style={{ margin: "4px 0 0" }} className="small">
           本页 7 部分内容由 AI 依据提示词生成，网表已通过 <span className="mono">cir_lint.py</span>。

@@ -19,25 +19,45 @@
 去 [Issue 模板 → 求电路](.github/ISSUE_TEMPLATE/circuit-request.md) 开一个 Issue，
 或直接在现有 `circuit-request` Issue 下评论认领。也可以跳过这步，直接提 PR。
 
-### Step 2 · 生成（AI 部分）
+### Step 2 · 建目录 + 生成（AI 部分）
 
-1. 复制 [`prompts/circuit-generation-template.md`](./prompts/circuit-generation-template.md)。
-2. 把 12 个 `{{占位符}}` 全填掉（规范见 [`prompts/README.md`](./prompts/README.md)）。
-3. 丢给任意大模型，拿到**严格 7 部分**的输出。
-4. 把填完的提示词**原样**存进 `prompt-used.md`——不留这个文件的 PR 会被打回。
+**用脚手架脚本，一条命令建好目录**（推荐）：
 
 ```bash
-cp -r circuits/_template/ circuits/004-my-circuit/
-cd circuits/004-my-circuit/
-mv TEMPLATE.cir 004-my-circuit.cir     # 文件名与目录名保持一致
+python scripts/new_circuit.py 004 rc-lowpass "一阶 RC 低通滤波器" \
+    --difficulty 入门 \
+    --flow VIN,R1,C1 \
+    --desc "无源 RC 低通，截止频率约 1 kHz，-20 dB/十倍频滚降" \
+    --name-en "First-order RC low-pass filter"
 ```
+
+它会复制 `circuits/_template/` → `circuits/004-rc-lowpass/`、把 `TEMPLATE.cir` 改名、
+替换掉 front-matter 里的占位符，最后打印一份「还需要手填什么」的清单。
+
+> 不想用脚本就手动来：`cp -r circuits/_template/ circuits/004-my-circuit/`，
+> 再把 `TEMPLATE.cir` 改名成 `004-my-circuit.cir`（**文件名必须与目录名一致**）。
+
+然后：
+
+1. 复制 **v2** 模板 [`prompts/circuit-generation-template-v2.md`](./prompts/circuit-generation-template-v2.md)
+   （v1 也还能用，但导入后整理更费劲；两版区别见 [README「v1 还是 v2？」](./README.md#v1-还是-v2)）。
+2. 把 12 个 `{{占位符}}` 全填掉（规范见 [`prompts/README.md`](./prompts/README.md)）。
+3. 丢给任意大模型，拿到**严格 8 部分**（v1 是 7 部分）的输出：
+   第 1~7 节填进新目录的 `README.md`，第 1 部分的网表写进 `004-my-circuit.cir`。
+4. 把填完的提示词**原样**存进 `prompt-used.md`——不留这个文件的 PR 会被打回。
+
+> 📁 一个电路目录里必须是这 4 个文件（名字严格对应）：
+> `<目录名>.cir` / `README.md` / `prompt-used.md` / `verification.md`。
+> `README.md` 顶部要有 front-matter，字段规范见
+> [`circuits/_template/README.md`](./circuits/_template/README.md)。
 
 ### Step 3 · 验证（人工部分，不可跳过）
 
 1. `File → Open`，文件类型选 `SPICE netlist (*.cir)`，导入你的 `.cir`。
 2. **黑盒替换**：`.MODEL` 生成的器件全部换成 Multisim 主数据库里的真实型号
    （路径查 [`docs/multisim-library-map.md`](./docs/multisim-library-map.md)）。
-3. 按 README 第 3 节的 ASCII 图摆位，按第 5 节连线表逐条核对。
+3. 按 README **第 3a 节的网格坐标表**摆位（`Ctrl+R` 旋转、`Ctrl+左右` 镜像），
+   再对着第 3b 节 ASCII 图核对；按第 5 节连线表逐条接线。
 4. **重设分析**：`Simulate → Analyses and simulation`（导入的 `.OP/.TRAN/.AC` 常被忽略）。
 5. 跑仿真，用 **Grapher 游标**读真实数值。
 6. 把读数填进 `verification.md` 的"实测值"列，把 README front-matter 的
@@ -48,12 +68,26 @@ mv TEMPLATE.cir 004-my-circuit.cir     # 文件名与目录名保持一致
 
 ### Step 4 · 自检
 
+**① 同步网页数据（最容易漏的一步）**
+
+新电路必须在 `web/src/data/circuits.ts` 里有一条对应记录：
+
+- 文件顶部加 `const CIR_00N = \`...网表全文...\`;`
+- 在 `circuits` 数组里加一个同 `id` 的对象（含 `grid` / `parts` / `wires` / `theory` 等字段）
+
+漏了它，`check_web_data.py` 会报 `缺少 CIR_00N 块`，**CI 直接变红**。
+
+**② 跑这三条（CI 同款）**
+
 ```bash
-# 网表硬约束（严格模式，warning 也算失败——CI 就是这个标准）
+# 网表 16 条规则（严格模式，warning 也算失败——CI 就是这个标准）
 python scripts/cir_lint.py circuits/ --strict
 
 # 刷新根 README 的索引表
 python scripts/build_index.py --write
+
+# 校验 web 数据与 circuits/ 是否同步
+python scripts/check_web_data.py -v
 ```
 
 再把网表全文贴给 [`prompts/circuit-review-prompt.md`](./prompts/circuit-review-prompt.md)，

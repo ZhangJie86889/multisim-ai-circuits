@@ -4,7 +4,7 @@ import { circuits } from "../data/circuits";
 import { StatusBadge, DifficultyBadge, SignalFlow } from "../components/StatusBadge";
 
 const DIFFS = ["全部", "入门", "进阶", "挑战"] as const;
-const STATUSES = ["全部", "待验证", "已验证", "失败"] as const;
+const STATUSES = ["全部", "待验证", "已验证", "验证失败"] as const;
 
 export function CircuitLibrary() {
   const [diff, setDiff] = useState<(typeof DIFFS)[number]>("全部");

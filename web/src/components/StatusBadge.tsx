@@ -2,7 +2,7 @@ import { statusMeta, type VerifyStatus, type Difficulty } from "../data/circuits
 
 export function StatusBadge({ status, withHint = false }: { status: VerifyStatus; withHint?: boolean }) {
   const meta = statusMeta[status];
-  const cls = status === "已验证" ? "ok" : status === "失败" ? "err" : "warn";
+  const cls = status === "已验证" ? "ok" : status === "验证失败" ? "err" : "warn";
   return (
     <span className={`badge ${cls}`} title={withHint ? meta.hint : undefined}>
       <span aria-hidden>{meta.dot}</span>

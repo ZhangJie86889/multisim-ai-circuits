@@ -7,7 +7,7 @@
  */
 
 export type Difficulty = "入门" | "进阶" | "挑战";
-export type VerifyStatus = "待验证" | "已验证" | "失败";
+export type VerifyStatus = "待验证" | "已验证" | "验证失败";
 
 export type PartRow = { ref: string; path: string; params: string; note?: string };
 export type WireRow = { n: number; from: string; to: string; net?: string };
@@ -455,5 +455,5 @@ export function getCircuit(slug: string): Circuit | undefined {
 export const statusMeta: Record<VerifyStatus, { dot: string; label: string; hint: string }> = {
   待验证: { dot: "🟡", label: "待验证", hint: "只过了语法 lint，没人跑过，请当作草稿" },
   已验证: { dot: "🟢", label: "已验证", hint: "有人真的跑通了，数值可信度高" },
-  失败: { dot: "🔴", label: "验证失败", hint: "已知有问题，原因写在 verification.md" },
+  验证失败: { dot: "🔴", label: "验证失败", hint: "已知有问题，原因写在 verification.md" },
 };

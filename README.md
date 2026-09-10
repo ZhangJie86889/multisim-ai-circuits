@@ -118,7 +118,9 @@ flowchart TD
 | 6 | 仪器设置 | XFG1 / XSC1 端子与面板参数 + Grapher 游标读数法 |
 | 7 | 验证值 + 易错点 | 理论计算表 + 3 个典型接错方式的读数表现 |
 
-> 💡 落地建议：新建 `circuits/NNN-xxx/` 目录，直接 `cp -r circuits/_template/`，然后往里填。
+> 💡 落地建议：**一条命令建目录** → `python scripts/new_circuit.py 004 rc-lowpass "一阶 RC 低通滤波器" --flow VIN,R1,C1`
+> （等价于 `cp -r circuits/_template/ circuits/004-rc-lowpass/` 再改名，但会自动填好 front-matter 并打印待办清单）。
+> 新增电路要动的 **3 处** 与完整步骤见 [`CONTRIBUTING.md` 的 Step 2~4](./CONTRIBUTING.md)。
 
 ### v1 还是 v2？
 
@@ -178,11 +180,13 @@ multisim-ai-circuits/
 ├── docs/
 │   ├── workflow.md                # 完整贡献流程图文
 │   ├── multisim-library-map.md    # 常用元件库路径速查表
+│   ├── images/workflow.svg|png    # 工作流程图（窄版矢量图 + 2x PNG）
 │   └── faq.md                     # 高频问题（导入失败 / 图乱 / 仪器设置…）
 ├── scripts/
-│   ├── cir_lint.py                # .cir 硬约束自动检查（CI 用）
+│   ├── cir_lint.py                # .cir 硬约束自动检查（16 条规则，CI 用）
 │   ├── build_index.py             # 扫描 circuits/ 自动生成索引表
-│   └── check_web_data.py          # 校验 web 数据与 circuits/ 是否同步
+│   ├── check_web_data.py          # 校验 web 数据与 circuits/ 是否同步
+│   └── new_circuit.py             # ★ 一条命令脚手架一个新电路目录
 ├── web/                           # ★ 配套静态站点（Vite + React + TS）
 │   ├── src/lib/cir-lint.ts        # cir_lint.py 的浏览器端移植（在线检查用）
 │   ├── src/data/                  # 电路 / FAQ / 元件库 / 提示词模板（静态内嵌）
