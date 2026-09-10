@@ -168,6 +168,7 @@ multisim-ai-circuits/
 │   ├── circuit-generation-template.md   # v1：参数化生成模板（7 部分输出）
 │   ├── circuit-generation-template-v2.md # v2：强化导入布局（8 部分，多一张网格坐标表）
 │   ├── circuit-review-prompt.md         # PR 前自检提示词（7 项 PASS/FAIL）
+│   ├── ai-push-prompt.md                # 让 AI 帮你检查→提交→推送的提示词（复制即用）
 │   └── README.md                        # 占位符填写规范 + 示例
 ├── circuits/                      # 电路库，一个目录一个电路
 │   ├── _template/                 # 新电路目录模板（复制即用）
