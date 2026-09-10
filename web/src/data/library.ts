@@ -14,6 +14,71 @@ export type LibGroup = { title: string; emoji: string; rows: LibRow[] };
 
 export const libraryGroups: LibGroup[] = [
   {
+    title: "稳压与电源管理",
+    emoji: "🔋",
+    rows: [
+      { name: "LM7805 / LM7812", path: "Power / VOLTAGE_REGULATOR / LM7805CT 等", note: "三端正线性稳压器", tags: "lm7805 lm7812 regulator 稳压" },
+      { name: "LM7905 / LM7912", path: "Power / VOLTAGE_REGULATOR / LM7905CT 等", note: "三端负电压稳压器，注意极性", tags: "lm7905 lm7912 negative regulator" },
+      { name: "LM317", path: "Power / VOLTAGE_REGULATOR / LM317T", note: "可调正稳压器，按数据手册设置反馈电阻", tags: "lm317 adjustable regulator" },
+      { name: "LM337", path: "Power / VOLTAGE_REGULATOR / LM337T", note: "可调负稳压器", tags: "lm337 adjustable regulator" },
+      { name: "LM78XX_VIRTUAL", path: "Power / VOLTAGE_REGULATOR / LM78XX_VIRTUAL", note: "教学或快速验证用的虚拟三端稳压器", tags: "virtual regulator 虚拟稳压" },
+      { name: "TL431", path: "Power / VOLTAGE_REFERENCE / TL431", note: "可调精密基准/并联稳压器", tags: "tl431 reference 基准" },
+      { name: "BATTERY", path: "Sources / POWER_SOURCES / BATTERY", note: "直流电池模型，可设置电压和内阻", tags: "battery 电池" },
+    ],
+  },
+  {
+    title: "晶闸管与光耦",
+    emoji: "⚡",
+    rows: [
+      { name: "SCR", path: "Diodes / SCR / <型号>", note: "单向可控硅，端子为 A / K / G", tags: "scr thyristor 可控硅" },
+      { name: "TRIAC", path: "Diodes / TRIAC / <型号>", note: "双向可控硅，适合交流调光和交流开关", tags: "triac 可控硅" },
+      { name: "DIAC", path: "Diodes / DIAC / <型号>", note: "双向触发二极管，常与 TRIAC 配合", tags: "diac" },
+      { name: "UJT", path: "Transistors / UJT / <型号>", note: "单结晶体管，可用于弛张振荡器", tags: "ujt" },
+      { name: "MOC3021", path: "Optocouplers / OPTOCOUPLER / MOC3021", note: "随机导通型光耦，适合 TRIAC 触发", tags: "moc3021 optocoupler 光耦 triac" },
+      { name: "4N25 / PC817", path: "Optocouplers / OPTOCOUPLER / <型号>", note: "晶体管输出光耦，用于信号隔离", tags: "4n25 pc817 optocoupler 光耦" },
+    ],
+  },
+  {
+    title: "TTL / CMOS 数字逻辑",
+    emoji: "🔢",
+    rows: [
+      { name: "74LS00", path: "TTL / 74LS / 74LS00N", note: "四路二输入 NAND 门", tags: "74ls00 nand 与非门" },
+      { name: "74LS04", path: "TTL / 74LS / 74LS04N", note: "六路反相器", tags: "74ls04 inverter 反相器" },
+      { name: "74LS08", path: "TTL / 74LS / 74LS08N", note: "四路二输入 AND 门", tags: "74ls08 and 与门" },
+      { name: "74LS32", path: "TTL / 74LS / 74LS32N", note: "四路二输入 OR 门", tags: "74ls32 or 或门" },
+      { name: "74LS86", path: "TTL / 74LS / 74LS86N", note: "四路二输入 XOR 门", tags: "74ls86 xor 异或" },
+      { name: "74HC00 / 74HC04", path: "CMOS / 74HC_4V / 74HC00N_4V 等", note: "CMOS NAND / 反相器，注意逻辑电源电压", tags: "74hc00 74hc04 cmos" },
+      { name: "CD4017", path: "CMOS / 4000 / 4017BD_10V", note: "十进制计数器/分频器", tags: "cd4017 4017 counter 计数器" },
+      { name: "CD4013", path: "CMOS / 4000 / 4013BD_10V", note: "双 D 触发器", tags: "cd4013 4013 d flip flop" },
+      { name: "74LS161", path: "TTL / 74LS / 74LS161N", note: "四位同步二进制计数器", tags: "74ls161 counter 计数器" },
+    ],
+  },
+  {
+    title: "显示与输入器件",
+    emoji: "🖥️",
+    rows: [
+      { name: "七段数码管（共阴）", path: "Indicators / HEX_DISPLAY / SEVEN_SEG_COM_CATHODE", note: "段线通常为 a~g，公共阴极接地", tags: "7 segment common cathode 数码管" },
+      { name: "七段数码管（共阳）", path: "Indicators / HEX_DISPLAY / SEVEN_SEG_COM_ANODE", note: "公共阳极接正电源，段线通常低电平点亮", tags: "7 segment common anode 数码管" },
+      { name: "LCD 16x2", path: "Indicators / LCD / LCD_16X2", note: "字符型液晶显示器，适合 MCU 接口实验", tags: "lcd 16x2" },
+      { name: "LED BARGRAPH", path: "Indicators / LED / LED_BARGRAPH", note: "LED 条形图，用于电平显示", tags: "led bargraph 条形图" },
+      { name: "按钮", path: "Basic / SWITCH / PUSHBUTTON", note: "瞬时按键，仿真时按空格或鼠标操作", tags: "pushbutton button 按钮" },
+      { name: "DIP 开关", path: "Basic / SWITCH / DIP_SWITCH", note: "多位拨码开关，可作为数字输入", tags: "dip switch 拨码开关" },
+      { name: "蜂鸣器", path: "Indicators / AUDIBLE / BUZZER", note: "有源/无源型号名称可能不同，搜 BUZZER", tags: "buzzer 蜂鸣器" },
+    ],
+  },
+  {
+    title: "机电与传感器",
+    emoji: "⚙️",
+    rows: [
+      { name: "直流电机", path: "Electromechanical / MOTORS / DC_MOTOR", note: "感性负载，开关时应并联续流二极管", tags: "dc motor 电机" },
+      { name: "步进电机", path: "Electromechanical / MOTORS / STEPPER_MOTOR", note: "配合驱动器或 H 桥使用", tags: "stepper motor 步进电机" },
+      { name: "继电器", path: "Electromechanical / RELAY / <型号>", note: "线圈与触点隔离，注意线圈额定电压", tags: "relay 继电器" },
+      { name: "LDR 光敏电阻", path: "Sensors / OPTOELECTRONIC / PHOTORESISTOR", note: "阻值随光照变化", tags: "ldr photoresistor 光敏电阻" },
+      { name: "热敏电阻 NTC / PTC", path: "Basic / THERMISTOR / NTC 或 PTC", note: "温度变化引起阻值变化", tags: "ntc ptc thermistor 热敏" },
+      { name: "压电片", path: "Electromechanical / TRANSDUCERS / PIEZO", note: "可作蜂鸣器或振动传感器", tags: "piezo 压电" },
+    ],
+  },
+  {
     title: "电源与地",
     emoji: "🔌",
     rows: [

@@ -132,17 +132,67 @@
 
 ---
 
-## 七、TTL / CMOS 数字器件（快速索引）
+## 七、稳压与电源管理（Power Management）
 
-| 元件 | 路径 |
-|------|------|
-| 74LS00 / 74LS04 / 74LS08 … | `TTL / 74LS / 74LS00N` 等 |
-| 74HC 系列 | `CMOS / 74HC_4V / 74HC00N_4V` 等 |
-| 4000 系列 | `CMOS / 4000 / 4001BD_10V` 等 |
+| 元件 | Group / Family / Component | 说明 |
+|------|---------------------------|------|
+| **LM7805 / LM7812** | `Power / VOLTAGE_REGULATOR / LM7805CT` 等 | 三端线性稳压器，正输入、地、正输出 |
+| **LM7905 / LM7912** | `Power / VOLTAGE_REGULATOR / LM7905CT` 等 | 负电压三端稳压器，注意输入输出极性 |
+| **LM317** | `Power / VOLTAGE_REGULATOR / LM317T` | 可调正稳压器，需按数据手册设置反馈电阻 |
+| **LM337** | `Power / VOLTAGE_REGULATOR / LM337T` | 可调负稳压器 |
+| **LM7805_VIRTUAL** | `Power / VOLTAGE_REGULATOR / LM78XX_VIRTUAL` | 教学或快速验证时使用的虚拟三端稳压器 |
+| **TL431** | `Power / VOLTAGE_REFERENCE / TL431` | 可调精密基准/并联稳压器 |
+| **电池** | `Sources / POWER_SOURCES / BATTERY` | 直流电池模型，可设置电压和内阻 |
 
----
+## 八、晶闸管与光耦（Thyristors & Optocouplers）
 
-## 八、仪器（不是元件，从右侧仪器栏拖）
+| 元件 | Group / Family / Component | 说明 |
+|------|---------------------------|------|
+| **SCR** | `Diodes / SCR / <型号>` | 单向可控硅，端子为 A / K / G |
+| **TRIAC** | `Diodes / TRIAC / <型号>` | 双向可控硅，适合交流调光和交流开关 |
+| **DIAC** | `Diodes / DIAC / <型号>` | 双向触发二极管，常与 TRIAC 配合 |
+| **UJT** | `Transistors / UJT / <型号>` | 单结晶体管，可用于弛张振荡器 |
+| **MOC3021** | `Optocouplers / OPTOCOUPLER / MOC3021` | 随机导通型光耦，适合 TRIAC 触发 |
+| **4N25 / PC817** | `Optocouplers / OPTOCOUPLER / <型号>` | 晶体管输出光耦，用于信号隔离 |
+
+## 九、TTL / CMOS 数字逻辑
+
+| 元件 | Group / Family / Component | 说明 |
+|------|---------------------------|------|
+| **74LS00** | `TTL / 74LS / 74LS00N` | 四路二输入 NAND 门 |
+| **74LS04** | `TTL / 74LS / 74LS04N` | 六路反相器 |
+| **74LS08** | `TTL / 74LS / 74LS08N` | 四路二输入 AND 门 |
+| **74LS32** | `TTL / 74LS / 74LS32N` | 四路二输入 OR 门 |
+| **74LS86** | `TTL / 74LS / 74LS86N` | 四路二输入 XOR 门 |
+| **74HC00 / 74HC04** | `CMOS / 74HC_4V / 74HC00N_4V` 等 | CMOS NAND / 反相器，注意逻辑电源电压 |
+| **CD4017** | `CMOS / 4000 / 4017BD_10V` | 十进制计数器/分频器 |
+| **CD4013** | `CMOS / 4000 / 4013BD_10V` | 双 D 触发器 |
+| **74LS161** | `TTL / 74LS / 74LS161N` | 四位同步二进制计数器 |
+
+## 十、显示与输入器件
+
+| 元件 | Group / Family / Component | 说明 |
+|------|---------------------------|------|
+| **七段数码管（共阴）** | `Indicators / HEX_DISPLAY / SEVEN_SEG_COM_CATHODE` | 段线通常为 a~g，公共阴极接地 |
+| **七段数码管（共阳）** | `Indicators / HEX_DISPLAY / SEVEN_SEG_COM_ANODE` | 公共阳极接正电源，段线通常低电平点亮 |
+| **LCD 16x2** | `Indicators / LCD / LCD_16X2` | 字符型液晶显示器，适合 MCU 接口实验 |
+| **LED BARGRAPH** | `Indicators / LED / LED_BARGRAPH` | LED 条形图，用于电平显示 |
+| **按钮** | `Basic / SWITCH / PUSHBUTTON` | 瞬时按键，仿真时按空格或鼠标操作 |
+| **DIP 开关** | `Basic / SWITCH / DIP_SWITCH` | 多位拨码开关，可作为数字输入 |
+| **蜂鸣器** | `Indicators / AUDIBLE / BUZZER` | 有源/无源型号名称可能不同，搜 `BUZZER` |
+
+## 十一、机电与传感器
+
+| 元件 | Group / Family / Component | 说明 |
+|------|---------------------------|------|
+| **直流电机** | `Electromechanical / MOTORS / DC_MOTOR` | 感性负载，开关时应并联续流二极管 |
+| **步进电机** | `Electromechanical / MOTORS / STEPPER_MOTOR` | 配合驱动器或 H 桥使用 |
+| **继电器** | `Electromechanical / RELAY / <型号>` | 线圈与触点隔离，注意线圈额定电压 |
+| **LDR 光敏电阻** | `Sensors / OPTOELECTRONIC / PHOTORESISTOR` | 阻值随光照变化 |
+| **热敏电阻 NTC / PTC** | `Basic / THERMISTOR / NTC` 或 `PTC` | 温度变化引起阻值变化 |
+| **压电片** | `Electromechanical / TRANSDUCERS / PIEZO` | 可作蜂鸣器或振动传感器 |
+
+## 十二、仪器（不是元件，从右侧仪器栏拖）
 
 | 仪器 | 默认代号 | 取用路径 |
 |------|---------|---------|
@@ -158,7 +208,7 @@
 
 ---
 
-## 九、快捷键（整理原理图时省时间）
+## 十三、快捷键（整理原理图时省时间）
 
 | 操作 | 快捷键 |
 |------|--------|
@@ -173,7 +223,7 @@
 
 ---
 
-## 十、发现路径不对？
+## 十四、发现路径不对？
 
 提 PR 改这张表！在表格里改一行 + 在下面"版本差异记录"里补一行即可：
 
