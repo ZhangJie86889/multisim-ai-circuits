@@ -1,0 +1,59 @@
+name: Lint CIR
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'circuits/**/*.cir'
+      - 'circuits/**/README.md'
+      - 'scripts/**'
+      - '.github/workflows/lint.yml'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'circuits/**'
+      - 'scripts/**'
+      - 'README.md'
+      - '.github/workflows/lint.yml'
+  workflow_dispatch:
+
+jobs:
+  cir-lint:
+    name: 网表硬约束检查 (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.9', '3.11']
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 配置 Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 环境自检
+        run: |
+          python --version
+          echo "待检查的网表文件："
+          find circuits -name '*.cir' | sort
+
+      - name: 运行 cir_lint（严格模式，warning 也算失败）
+        run: |
+          python scripts/cir_lint.py circuits/ --strict
+
+      - name: 校验电路索引表是否最新
+        run: |
+          python scripts/build_index.py --check
+
+      - name: 汇总报告
+        if: always()
+        run: |
+          echo "## cir_lint 结果" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          python scripts/cir_lint.py circuits/ --strict >> $GITHUB_STEP_SUMMARY 2>&1 || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
