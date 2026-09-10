@@ -18,7 +18,9 @@ check_web_data.py —— 校验 web/src/data/circuits.ts 与 circuits/ 目录是
 --------
 1. circuits/*/ 下每个非 _template 目录，都能在 circuits.ts 里找到同 id 的 CIR_xxx 块；
 2. CIR_xxx 块的内容与该目录下唯一的 .cir 文件逐字一致（忽略行尾 CR、忽略首尾空行）；
-3. front-matter 的 id / name / difficulty / status / signalflow 与 circuits.ts 对应字段一致。
+3. front-matter 的 id / name / difficulty / status / signalflow 与 circuits.ts 对应字段一致；
+4. README.md 必须是 **UTF-8**（中文 Windows 编辑器容易存成 GBK/ANSI，
+   提交后 GitHub 网页中文会整片乱码，且 build_index.py 会生成乱码索引行）。
 
 退出码：0 一致 / 1 有漂移 / 2 找不到文件。
 """
@@ -72,6 +74,35 @@ def parse_frontmatter(readme: Path) -> dict:
     return fm
 
 
+def check_md_encoding(readme: Path) -> str:
+    """校验 Markdown 文档必须是 UTF-8。
+
+    踩过的坑：中文 Windows 上的编辑器（含部分 AI 工具）默认把文件存成
+    GBK/ANSI。这种文件直接提交会有两个后果——
+      ① GitHub 网页按 UTF-8 渲染，中文整片变乱码；
+      ② build_index.py 读出来全是问号，生成进索引表的也是乱码。
+    所以这里给出可操作的修复提示，而不是让乱码静默溜过去。
+    """
+    if not readme.is_file():
+        return ""
+    raw = readme.read_bytes()
+    if raw.startswith(b"\xef\xbb\xbf"):
+        return "README.md 带 UTF-8 BOM，请另存为「UTF-8 无 BOM」"
+    try:
+        raw.decode("utf-8")
+        return ""
+    except UnicodeDecodeError:
+        for enc in ("gbk", "big5"):
+            try:
+                raw.decode(enc)
+                return (f"README.md 不是 UTF-8（实际是 {enc.upper()} / ANSI），"
+                        f"提交后 GitHub 上中文会变乱码；请用记事本或 VS Code "
+                        f"转成 UTF-8 后重新提交")
+            except UnicodeDecodeError:
+                continue
+        return "README.md 不是有效的 UTF-8，且无法按 GBK / Big5 解码"
+
+
 def main(argv=None) -> int:
     argv = argv if argv is not None else sys.argv[1:]
     verbose = "-v" in argv or "--verbose" in argv
@@ -105,6 +136,11 @@ def main(argv=None) -> int:
             continue
         key = m.group(1).lstrip("0") or "0"
         cid = m.group(1)
+
+        # 编码校验：Markdown 必须是 UTF-8，否则 GitHub 上中文会乱码
+        enc_problem = check_md_encoding(d / "README.md")
+        if enc_problem:
+            problems.append(f"{cid}: {enc_problem}")
 
         file_text = norm_cir(cir_file.read_text(encoding="utf-8", errors="replace"))
         ts_text = blocks.get(key)
