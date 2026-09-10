@@ -10,7 +10,7 @@ const FLOW = [
   { t: "Multisim File → Open", d: "把第 1 部分的 .cir 存盘后导入，黑盒替换库件、按 ASCII 图摆位连线。" },
   { t: "人工仿真验证", d: "在真实 Multisim 14.3 里跑，用 Grapher 游标记录实测值（AI 不参与）。" },
   { t: "填 verification.md 并提 PR", d: "理论上/实测值分列，状态标签按实情填写。" },
-  { t: "CI 自动跑 cir_lint", d: "push/PR 触发，13 条硬约束全过才允许合并。" },
+  { t: "CI 自动跑 cir_lint", d: "push/PR 触发，16 条硬约束全过才允许合并。" },
   { t: "合并 + 刷新索引", d: "build_index.py 更新 README 索引表，电路正式入库。" },
 ];
 
@@ -34,7 +34,7 @@ export function Home() {
         <div className="stat-row">
           <div className="stat"><div className="n">{circuits.length}</div><div className="l">种子电路</div></div>
           <div className="stat"><div className="n">7</div><div className="l">结构化输出</div></div>
-          <div className="stat"><div className="n">13</div><div className="l">lint 硬约束</div></div>
+          <div className="stat"><div className="n">16</div><div className="l">lint 规则</div></div>
           <div className="stat"><div className="n">MIT</div><div className="l">开源协议</div></div>
         </div>
       </section>
@@ -60,7 +60,7 @@ export function Home() {
         </div>
         <div className="card">
           <h3>🚫 网表导入的坑</h3>
-          <p className="small muted">非 ASCII 字符、超 132 字符的行、不支持的指令都会让导入直接失败。13 条 lint 规则把它们挡在门外。</p>
+          <p className="small muted">非 ASCII 字符、超 132 字符的行、不支持的指令都会让导入直接失败。16 条 lint 规则把它们挡在门外。</p>
         </div>
       </div>
 

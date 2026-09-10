@@ -7,12 +7,14 @@ on:
       - 'circuits/**/*.cir'
       - 'circuits/**/README.md'
       - 'scripts/**'
+      - 'web/src/data/**'
       - '.github/workflows/lint.yml'
   pull_request:
     branches: [main, master]
     paths:
       - 'circuits/**'
       - 'scripts/**'
+      - 'web/src/data/**'
       - 'README.md'
       - '.github/workflows/lint.yml'
   workflow_dispatch:
@@ -48,6 +50,10 @@ jobs:
       - name: 校验电路索引表是否最新
         run: |
           python scripts/build_index.py --check
+
+      - name: 校验 web 数据与 circuits/ 是否同步
+        run: |
+          python scripts/check_web_data.py
 
       - name: 汇总报告
         if: always()

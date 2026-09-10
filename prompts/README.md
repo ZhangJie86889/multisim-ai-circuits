@@ -5,6 +5,15 @@
 偷懒办法：去开一个 [circuit-request Issue](../.github/ISSUE_TEMPLATE/circuit-request.md)，
 表单字段与下面 1~8 一一对应，复制粘贴即可。
 
+> 📌 **两版模板共用这 12 个占位符**，所以本文件的填写规范对两版都适用：
+>
+> - [`circuit-generation-template.md`](./circuit-generation-template.md) —— **v1**，7 部分输出
+> - [`circuit-generation-template-v2.md`](./circuit-generation-template-v2.md) —— **v2**（推荐），
+>   8 部分输出，多一张 **3a 网格坐标表**，并新增「网络标签优先 / 信号流单调向右 / 扇出 ≤ 4」约束，
+>   用来减少导入 Multisim 后的摆放混乱与连线交叉
+>
+> 选哪版见 [README 的「v1 还是 v2？」](../README.md#v1-还是-v2)。
+
 ---
 
 ## 占位符总表

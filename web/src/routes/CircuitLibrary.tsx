@@ -84,7 +84,7 @@ export function CircuitLibrary() {
         <p style={{ margin: "4px 0 0" }} className="small">
           复制 <span className="mono">circuits/_template/</span>，用{" "}
           <Link to="/prompt">提示词生成器</Link> 造一份提示词交给 AI，按{" "}
-          <Link to="/workflow">工作流</Link> 人工验证后提交 PR。CI 会自动跑 13 条硬约束检查。
+          <Link to="/workflow">工作流</Link> 人工验证后提交 PR。CI 会自动跑 16 条规则检查。
         </p>
       </div>
     </div>

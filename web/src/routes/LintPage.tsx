@@ -13,26 +13,36 @@ C1 OUT 0 100n
 .END
 `;
 
+const LEVEL_LABEL: Record<string, string> = {
+  error: "ERROR",
+  warn: "WARN",
+  info: "INFO",
+};
+
 function Report({ report }: { report: LintReport }) {
-  const { errors, warns, findings } = report;
+  const { errors, warns, infos, findings } = report;
   const ok = errors === 0;
   return (
     <>
       <div className={`callout ${ok ? "ok" : "err"}`} style={{ marginTop: 14 }}>
         <div className="t">{ok ? "✅ LINT PASSED" : "❌ LINT FAILED"}</div>
         <p style={{ margin: "4px 0 0" }} className="small">
-          {errors} error · {warns} warn · 识别到 {report.nElements} 个元件行
-          {ok ? "（语法可导入 Multisim）" : "（存在会让导入失败的问题，请先修复）"}
+          {errors} error · {warns} warn · {infos} info · 识别到 {report.nElements} 个元件行
+          {ok
+            ? "（语法可导入 Multisim；info 只是排版提示，不影响导入）"
+            : "（存在会让导入失败的问题，请先修复）"}
         </p>
       </div>
 
       {findings.length === 0 ? (
-        <p className="small muted" style={{ marginTop: 10 }}>全部检查通过，没有任何 error / warn。</p>
+        <p className="small muted" style={{ marginTop: 10 }}>
+          全部检查通过，没有任何 error / warn / info。
+        </p>
       ) : (
         <ul className="lint-list">
           {findings.map((f, i) => (
             <li key={i} className={f.level}>
-              <span className="tag">{f.level === "error" ? "ERROR" : "WARN"}</span>
+              <span className="tag">{LEVEL_LABEL[f.level] ?? f.level}</span>
               <span className="tag" style={{ background: "transparent", color: "var(--muted)" }}>{f.code}</span>
               <span className="loc">{f.line ? `第 ${f.line} 行` : "文件级"}</span>
               <span style={{ flex: 1 }}>{f.message}</span>
@@ -69,7 +79,7 @@ export function LintPage() {
     <div className="container">
       <h1>在线 .cir 语法检查</h1>
       <p className="lead">
-        浏览器本地运行，与仓库的 <span className="mono">cir_lint.py</span> 同一套规则（13 条硬约束）。
+        浏览器本地运行，与仓库的 <span className="mono">cir_lint.py</span> 同一套规则（16 条：9 error / 6 warn / 1 info）。
         粘贴网表后点「开始检查」，或直接载入种子电路试跑。数据不会离开你的浏览器。
       </p>
 
@@ -140,6 +150,8 @@ export function LintPage() {
             <tr><td className="mono">W-LEN01</td><td><span className="badge warn">warn</span></td><td>单行超过 132 字符</td></tr>
             <tr><td className="mono">W-NAME1</td><td><span className="badge warn">warn</span></td><td>元件名建议全大写</td></tr>
             <tr><td className="mono">W-MISC1</td><td><span className="badge warn">warn</span></td><td>无法识别的行 / 首字母不在 RLCVDQX 内</td></tr>
+            <tr><td className="mono">W-FANOUT1</td><td><span className="badge warn">warn</span></td><td>单节点出现 ≥5 次，扇出过大导致连线交叉（拆节点或加网络标签）</td></tr>
+            <tr><td className="mono">I-SPAN1</td><td><span className="badge gray">info</span></td><td>单网络横跨 ≥4 个元件位，会拉出横穿图面的长线（<strong>不影响通过</strong>）</td></tr>
           </tbody>
         </table>
       </div>

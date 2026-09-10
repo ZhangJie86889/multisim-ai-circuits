@@ -3,10 +3,12 @@ import { Link } from "react-router-dom";
 import {
   EMPTY_FIELDS,
   FIELD_META,
+  TEMPLATE_META,
   fillTemplate,
   filledCount,
   remainingPlaceholders,
   type PromptFields,
+  type TemplateVersion,
 } from "../data/template";
 import { CodeBlock } from "../components/CodeBlock";
 
@@ -29,11 +31,16 @@ const EXAMPLE: PromptFields = {
 export function PromptGenerator() {
   const [fields, setFields] = useState<PromptFields>(EMPTY_FIELDS);
   const [withSupplement, setWithSupplement] = useState(true);
+  const [version, setVersion] = useState<TemplateVersion>("v2");
 
-  const output = useMemo(() => fillTemplate(fields, withSupplement), [fields, withSupplement]);
+  const output = useMemo(
+    () => fillTemplate(fields, version, withSupplement),
+    [fields, version, withSupplement],
+  );
   const filled = filledCount(fields);
   const missing = remainingPlaceholders(output);
   const total = FIELD_META.length;
+  const meta = TEMPLATE_META[version];
 
   const set = (key: keyof PromptFields, value: string) => setFields((f) => ({ ...f, [key]: value }));
 
@@ -41,16 +48,46 @@ export function PromptGenerator() {
     <div className="container">
       <h1>提示词生成器</h1>
       <p className="lead">
-        填写下面的字段，右侧实时拼出完整的生成提示词。带着 <span className="mono">{`{{占位符}}`}</span>{" "}
+        选择模板版本 → 填写字段 → 右侧实时拼出完整提示词。带着 <span className="mono">{`{{占位符}}`}</span>{" "}
         直接发给 AI 也能用（AI 会反问或自行假设），但填得越满，返工越少。
       </p>
+
+      <div className="grid cols-2" style={{ marginTop: 16, gap: 12 }}>
+        {(["v1", "v2"] as TemplateVersion[]).map((v) => {
+          const m = TEMPLATE_META[v];
+          const on = version === v;
+          return (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setVersion(v)}
+              className="card"
+              style={{
+                textAlign: "left",
+                cursor: "pointer",
+                font: "inherit",
+                marginTop: 0,
+                borderColor: on ? "var(--accent)" : "var(--border)",
+                background: on ? "var(--accent-soft)" : "var(--bg)",
+              }}
+            >
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
+                <strong>{m.label}</strong>
+                <span className={`badge ${on ? "accent" : "gray"}`}>{m.outputs}输出</span>
+                {on && <span className="badge ok">当前</span>}
+              </div>
+              <div className="small muted">{m.desc}</div>
+            </button>
+          );
+        })}
+      </div>
 
       <div className="toolbar" style={{ marginTop: 16 }}>
         <button className="btn" onClick={() => setFields(EXAMPLE)}>载入示例（001 电路）</button>
         <button className="btn" onClick={() => setFields(EMPTY_FIELDS)}>清空</button>
         <label className="small" style={{ display: "inline-flex", gap: 6, alignItems: "center", marginLeft: 6 }}>
           <input type="checkbox" checked={withSupplement} onChange={(e) => setWithSupplement(e.target.checked)} />
-          附带「补充要求 A/B/C」
+          附带「补充要求」
         </label>
         <span className="spacer" />
         <span className={`badge ${filled === total ? "ok" : "warn"}`}>
@@ -88,6 +125,7 @@ export function PromptGenerator() {
         <div style={{ position: "sticky", top: 76 }}>
           <div className="toolbar" style={{ marginBottom: 8 }}>
             <strong>提示词预览</strong>
+            <span className="badge accent">{meta.label}</span>
             <span className="spacer" />
             {missing.length > 0 ? (
               <span className="badge warn">还剩 {missing.length} 个占位符</span>
@@ -97,17 +135,23 @@ export function PromptGenerator() {
           </div>
           <CodeBlock name="prompt.txt" code={output} lang={`${output.length} 字符`} />
           <p className="small muted" style={{ marginTop: 8 }}>
-            直接点上方「复制」即可粘贴给任意大模型。想手动改细节？也可以去仓库看原始模板{" "}
-            <span className="mono">prompts/circuit-generation-template.md</span>。
+            直接点上方「复制」即可粘贴给任意大模型。想手动改细节？去仓库看原始模板{" "}
+            <span className="mono">
+              prompts/{version === "v2" ? "circuit-generation-template-v2" : "circuit-generation-template"}.md
+            </span>
+            。
           </p>
         </div>
       </div>
 
-      <h2>拿到 7 部分输出之后</h2>
+      <h2>拿到 {meta.outputs.replace("部分", "")} 部分输出之后</h2>
       <ol className="steps">
         <li>把第 1 部分的代码块存成 <span className="mono">circuits/NNN-xxx/NNN-xxx.cir</span>。</li>
         <li>跑 <Link to="/lint">在线检查</Link> 或本地 <span className="mono">python scripts/cir_lint.py</span>，确认 0 error。</li>
-        <li>在 Multisim 里 <span className="mono">File → Open</span> 导入，做黑盒替换、摆位、连线。</li>
+        <li>
+          在 Multisim 里 <span className="mono">File → Open</span> 导入，做黑盒替换、摆位、连线。
+          {version === "v2" && " v2 多一张 3a 网格坐标表，照它摆位能把整理时间压到 5 分钟左右。"}
+        </li>
         <li>跑仿真、用 Grapher 游标读数，把实测值填进 <span className="mono">verification.md</span>，再提 PR。</li>
       </ol>
     </div>

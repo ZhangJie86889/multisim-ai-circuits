@@ -35,6 +35,19 @@ cir_lint.py —— NI Multisim 14.3 .cir 网表硬约束检查器
     W-LEN01   单行超过 132 字符（经典 SPICE 上限，Multisim 导入可能被截断）
     W-NAME1   元件名建议全大写
     W-MISC1   无法识别的行
+    W-FANOUT1 单个节点出现 >= 5 次，导入后飞线易交叉（v2 提示词第 9 条配套）
+    I-SPAN1   单个网络横跨 >= 4 个元件位，导入后必然产生跨图长线（仅提示）
+
+级别说明（v1.2 新增）
+--------------------
+    error  会让 Multisim 导入失败，必须修；退出码 1
+    warn   可能导致导入后难用或结果不符；--strict 时计入失败
+    info   纯排版 / 可读性提示，任何模式下都 **不影响退出码**，只提醒不阻塞
+
+    为什么要引入 info：像「某个网络横跨很远」这类问题，在分压偏置、555 这类
+    正常电路里也必然出现（例如 002 的 COL 跨 5 个元件位），
+    若判成 warn 会让 CI 无辜变红。所以凡"正常电路也会命中"的排版类检查，
+    一律用 info。
 
 解析前提（v1.1 新增，避免误报）
 -------------------------------
@@ -90,6 +103,8 @@ BANNED_HINT = {
 }
 
 ELEMENT_FIRST = set("RLCVDQX")          # 元件行首字母（M/J 等暂不纳入）
+# 电源网络名：这些节点横跨很远属正常现象，不参与 W-FANOUT1 / I-SPAN1
+POWER_NETS = {"VCC", "VDD", "VEE", "VSS", "VBB", "VPP", "VTT", "GND"}
 NODE_RE = re.compile(r"^[A-Z][A-Z0-9_]*$")
 # 1e-3 / 1E-3 / 2.5e+6 / 1.0E-9 这类科学计数法
 # SCI_RE 用于整行粗筛，SCI_TOKEN_RE 用于单个值 token 的完整匹配（更严格）
@@ -108,13 +123,14 @@ RE_FM_SIGNALFLOW = re.compile(r"^\s*signalflow\s*[:：]\s*(.+?)\s*$",
 
 @dataclass
 class Issue:
-    level: str          # "error" | "warn"
+    level: str          # "error" | "warn" | "info"
     code: str
     line: int           # 行号（0 表示整个文件）
     msg: str
 
     def __str__(self) -> str:
-        tag = "ERROR" if self.level == "error" else "WARN "
+        tag = {"error": "ERROR", "warn": "WARN ", "info": "INFO "}.get(
+            self.level, "?    ")
         loc = f"第 {self.line} 行" if self.line else "文件级"
         return f"  [{tag}] {self.code} @ {loc}: {self.msg}"
 
@@ -136,6 +152,10 @@ class FileReport:
     @property
     def warnings(self):
         return [i for i in self.issues if i.level == "warn"]
+
+    @property
+    def infos(self):
+        return [i for i in self.issues if i.level == "info"]
 
 
 # ---------------------------------------------------------------- 解析工具
@@ -275,6 +295,8 @@ def check_file(path: Path) -> FileReport:
 
     node_count = {}
     element_order = []
+    # v1.2：记录每个元件行的 (名称, 节点列表, 行号)，供 W-FANOUT1 / I-SPAN1 使用
+    element_seq = []
 
     for idx, (lineno, content) in enumerate(lines):
         # 长度检查（warn）
@@ -319,6 +341,7 @@ def check_file(path: Path) -> FileReport:
             continue
 
         element_order.append(name.upper())
+        element_seq.append((name.upper(), nodes_of(name[0], tokens), lineno))
         rep.n_elements += 1
 
         # 规则 5：节点名
@@ -346,6 +369,38 @@ def check_file(path: Path) -> FileReport:
         if cnt < 2:
             rep.add("warn", "W-FLOAT1", 0,
                     f"节点 {node!r} 只出现 {cnt} 次，疑似悬空（每个节点至少需要 2 个引脚）")
+
+    # ---- v1.2 排版规则（配合 v2 提示词的「摆放整齐 / 连线不混杂」）----
+
+    # W-FANOUT1：单节点出现 >= 5 次 —— 挂太多引脚，导入后飞线必然交叉。
+    # 阈值取 5 而不是 3：分压偏置电路的基极节点天然有 4 个连接
+    # （耦合电容 + 上偏置 + 下偏置 + 管子基极），取 3 会误伤 002 这类正常电路。
+    for node, cnt in sorted(node_count.items()):
+        if node in POWER_NETS:
+            continue
+        if cnt >= 5:
+            rep.add("warn", "W-FANOUT1", 0,
+                    f"节点 {node!r} 共出现 {cnt} 次，扇出过大；导入后以它为中心会拉出 "
+                    f"{cnt} 条飞线，极易交叉。建议拆成两个节点名"
+                    f"（中间用 0 欧电阻或直接导线相连），或改用网络标签集中放置")
+
+    # I-SPAN1：单个网络横跨 >= 4 个元件位 —— 必然产生横穿图面的长线。
+    # 用 info 级别：分压偏置、555 这类正常电路也会命中（如 002 的 COL 跨 5 位），
+    # 不能让它把 CI 判红，只作排版提醒。
+    span_of = {}
+    for k, (_nm, nds, _ln) in enumerate(element_seq):
+        for nd in nds:
+            if nd == "0" or nd in POWER_NETS:
+                continue
+            lo, hi = span_of.get(nd, (k, k))
+            span_of[nd] = (min(lo, k), max(hi, k))
+    for node, (lo, hi) in sorted(span_of.items()):
+        span = hi - lo
+        if span >= 4:
+            rep.add("info", "I-SPAN1", element_seq[hi][2],
+                    f"网络 {node!r} 从第 {lo + 1} 个元件跨到第 {hi + 1} 个元件"
+                    f"（跨 {span} 位）；导入后它会拉出一条横穿图面的长线。"
+                    f"建议在第 3a 节网格坐标表里把这些元件排成同列，或改用网络标签")
 
     # 规则 7：元件行顺序 vs README 声明的信号流
     declared = read_declared_signalflow(path)
@@ -413,12 +468,13 @@ def render(rep: FileReport, quiet: bool) -> None:
     print(f"\n=== {rep.path.as_posix()} ===")
     print(f"    逻辑行 {rep.n_lines} 行 · 元件 {rep.n_elements} 个")
     if not rep.issues:
-        print("    ✅ 全部检查通过（0 error / 0 warn）")
+        print("    ✅ 全部检查通过（0 error / 0 warn / 0 info）")
         return
     if not quiet:
         for i in rep.issues:
             print(str(i))
-    print(f"    小结：{len(rep.errors)} error / {len(rep.warnings)} warn")
+    print(f"    小结：{len(rep.errors)} error / {len(rep.warnings)} warn "
+          f"/ {len(rep.infos)} info")
 
 
 def collect(target: Path) -> list:
@@ -455,10 +511,13 @@ def main(argv=None) -> int:
 
     total_e = sum(len(r.errors) for r in reports)
     total_w = sum(len(r.warnings) for r in reports)
+    total_i = sum(len(r.infos) for r in reports)
+    # info 永远不影响退出码，只有 error（和 --strict 下的 warn）才算失败
     failed = [r for r in reports if r.errors or (args.strict and r.warnings)]
 
     print("\n" + "=" * 56)
-    print(f"总计：{len(files)} 个文件 · {total_e} error · {total_w} warn")
+    print(f"总计：{len(files)} 个文件 · {total_e} error · {total_w} warn "
+          f"· {total_i} info")
     if failed:
         print("失败文件：")
         for r in failed:

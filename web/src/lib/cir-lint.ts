@@ -16,12 +16,17 @@
  *   W-LEN01  单行超过 132 字符
  *   W-NAME1  元件名建议全大写
  *   W-MISC1  无法识别的行
+ *   W-FANOUT1 单节点出现 >= 5 次，导入后飞线易交叉
+ *   I-SPAN1   单个网络横跨 >= 4 个元件位，会拉出跨图长线
+ *
+ * 级别说明：error 必须修；warn 在 --strict 下计入失败；
+ * info 纯排版提示，任何模式下都不影响通过与否（与 Python 版一致）。
  *
  * 解析前提：先剥行内注释（; 与 $），再剥括号内容（PULSE(...)/SIN(...)），
  * 最后合并 "+" 续行 —— 与 Python 版逐条对齐。
  */
 
-export type LintLevel = "error" | "warn";
+export type LintLevel = "error" | "warn" | "info";
 
 export type LintFinding = {
   level: LintLevel;
@@ -35,6 +40,7 @@ export type LintReport = {
   findings: LintFinding[];
   errors: number;
   warns: number;
+  infos: number;
   pass: boolean;
   nElements: number;
   nLines: number;
@@ -69,6 +75,8 @@ const BANNED_DOT: Record<string, string> = {
 };
 
 const ELEMENT_FIRST = new Set(["R", "L", "C", "V", "D", "Q", "X"]);
+/** 电源网络名：横跨很远属正常，不参与 W-FANOUT1 / I-SPAN1 */
+const POWER_NETS = new Set(["VCC", "VDD", "VEE", "VSS", "VBB", "VPP", "VTT", "GND"]);
 const NODE_RE = /^(0|[A-Z][A-Z0-9_]*)$/;
 const SCI_TOKEN_RE = /^[+-]?(?:\d+\.?\d*|\.\d+)[eE][+-]?\d+$/;
 const NAME_RE = /^[A-Za-z][A-Za-z0-9_]*/;
@@ -208,6 +216,8 @@ export function lintCir(text: string, signalFlow?: string[]): LintReport {
 
   const nodeCount = new Map<string, number>();
   const elementOrder: string[] = [];
+  // 记录每个元件行的 (名称, 节点列表, 行号)，供 W-FANOUT1 / I-SPAN1 使用
+  const elementSeq: { name: string; nodes: string[]; line: number }[] = [];
   let nElements = 0;
 
   lines.forEach((content, idx) => {
@@ -246,6 +256,7 @@ export function lintCir(text: string, signalFlow?: string[]): LintReport {
     }
 
     elementOrder.push(name.toUpperCase());
+    elementSeq.push({ name: name.toUpperCase(), nodes: nodesOf(name[0]!, tokens), line: lineno });
     nElements += 1;
 
     for (const node of nodesOf(name[0]!, tokens)) {
@@ -271,6 +282,40 @@ export function lintCir(text: string, signalFlow?: string[]): LintReport {
     }
   }
 
+  // W-FANOUT1：单节点出现 >= 5 次（阈值取 5：分压偏置的基极节点天然 4 个连接）
+  for (const [node, cnt] of [...nodeCount.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    if (POWER_NETS.has(node)) continue;
+    if (cnt >= 5) {
+      add(
+        "warn",
+        "W-FANOUT1",
+        null,
+        `节点 ${JSON.stringify(node)} 共出现 ${cnt} 次，扇出过大；导入后以它为中心会拉出 ${cnt} 条飞线，极易交叉。建议拆成两个节点名（中间用 0 欧电阻或直接导线相连），或改用网络标签集中放置`,
+      );
+    }
+  }
+
+  // I-SPAN1：单网络横跨 >= 4 个元件位（info 级别，正常电路也会命中，不判失败）
+  const spanOf = new Map<string, [number, number]>();
+  elementSeq.forEach((el, k) => {
+    for (const nd of el.nodes) {
+      if (nd === "0" || POWER_NETS.has(nd)) continue;
+      const cur = spanOf.get(nd);
+      spanOf.set(nd, cur ? [Math.min(cur[0], k), Math.max(cur[1], k)] : [k, k]);
+    }
+  });
+  for (const [node, [lo, hi]] of [...spanOf.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    const span = hi - lo;
+    if (span >= 4) {
+      add(
+        "info",
+        "I-SPAN1",
+        elementSeq[hi]?.line ?? null,
+        `网络 ${JSON.stringify(node)} 从第 ${lo + 1} 个元件跨到第 ${hi + 1} 个元件（跨 ${span} 位）；导入后它会拉出一条横穿图面的长线。建议把这些元件排成同列，或改用网络标签`,
+      );
+    }
+  }
+
   // 行序 vs 声明的信号流
   if (signalFlow && signalFlow.length) {
     const declared = signalFlow.map((s) => s.trim().toUpperCase()).filter(Boolean);
@@ -292,5 +337,6 @@ export function lintCir(text: string, signalFlow?: string[]): LintReport {
 function finalize(findings: LintFinding[], nElements: number): LintReport {
   const errors = findings.filter((f) => f.level === "error").length;
   const warns = findings.filter((f) => f.level === "warn").length;
-  return { findings, errors, warns, pass: errors === 0, nElements, nLines: 0 };
+  const infos = findings.filter((f) => f.level === "info").length;
+  return { findings, errors, warns, infos, pass: errors === 0, nElements, nLines: 0 };
 }

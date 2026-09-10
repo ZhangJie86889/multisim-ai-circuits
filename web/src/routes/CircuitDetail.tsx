@@ -101,7 +101,31 @@ export function CircuitDetail() {
         </table>
       </div>
 
-      <h2>3 · ASCII 布局图（导入后照此摆位）</h2>
+      <h2>3a · 网格坐标表（照它摆位，飞线最少）</h2>
+      <p className="small muted" style={{ marginTop: 0 }}>
+        Multisim 默认栅格 0.1 inch = 1 格，下表为<b>相对坐标</b>：列 x 向右递增、行 y 向下递增。
+        主信号链上的元件都在同一行；电源在 y 更小的上方，地回路在 y 更大的下方。
+      </p>
+      <div className="table-wrap">
+        <table className="data">
+          <thead>
+            <tr><th>标号</th><th>列 x</th><th>行 y</th><th>旋转</th><th>摆放说明</th></tr>
+          </thead>
+          <tbody>
+            {c.grid.map((g) => (
+              <tr key={g.ref}>
+                <td className="mono"><strong>{g.ref}</strong></td>
+                <td className="num">{g.x}</td>
+                <td className="num">{g.y}</td>
+                <td className="mono">{g.rot}</td>
+                <td>{g.note}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h2>3b · ASCII 布局图（按 3a 坐标绘制）</h2>
       <CodeBlock name="layout.txt" code={c.ascii} lang="ascii" ascii />
 
       <h2>4 · 导入后整理步骤</h2>
@@ -112,6 +136,10 @@ export function CircuitDetail() {
       </ol>
 
       <h2>5 · 连线表（逐条核对，防漏线）</h2>
+      <p className="small muted" style={{ marginTop: 0 }}>
+        v2 格式的「建议走线方向」列（短直线 / 先横后竖 / 先竖后横 / 网络标签）以目录下的{" "}
+        <span className="mono">README.md</span> 第 5 节为准——网页不重复这份数据，避免两处漂移。
+      </p>
       <div className="table-wrap">
         <table className="data">
           <thead>

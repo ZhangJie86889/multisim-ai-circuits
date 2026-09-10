@@ -98,6 +98,21 @@ ASCII 版（无 Mermaid 渲染时）：
 
 > 💡 落地建议：新建 `circuits/NNN-xxx/` 目录，直接 `cp -r circuits/_template/`，然后往里填。
 
+### v1 还是 v2？
+
+| | 模板 | 输出 | 适合 |
+|---|------|------|------|
+| **v1** | [`circuit-generation-template.md`](./prompts/circuit-generation-template.md) | 7 部分 | 现有 3 个种子电路用的就是它（`prompt-used.md` 可复现） |
+| **v2** ⭐ | [`circuit-generation-template-v2.md`](./prompts/circuit-generation-template-v2.md) | 8 部分 | **元件多、连线复杂的电路**（共射放大、555、运放）；新增 3a 网格坐标表，导入后照表摆位 |
+
+v2 新增 4 条硬约束：**网络标签优先**（节点名语义化，远距离元件取同名节点而不画长飞线）、
+**信号流单调向右**（禁止回绕）、**扇出 ≤ 4**、**电源与地统一**；
+并把第 3 部分拆成 **3a 网格坐标表（列 / 行 / 旋转）+ 3b ASCII 图**。
+
+> ⚠️ 但要说清楚：`.cir` 网表**不含任何坐标信息**，v2 也**不能让 Multisim 自动摆整齐**。
+> 它的真实收益是把「导入后整理」从 ~30 分钟压到 ~5 分钟。要零整理只能换带坐标的格式
+> （LTspice `.asc` / EasyEDA JSON），详见 [`docs/faq.md`](./docs/faq.md) Q2。
+
 ---
 
 ## 四、电路索引表
@@ -125,13 +140,14 @@ multisim-ai-circuits/
 ├── LICENSE                        # MIT
 ├── CONTRIBUTING.md                # 五步贡献流程 + PR 检查清单
 ├── prompts/                       # ★ 核心资产
-│   ├── circuit-generation-template.md   # 参数化生成模板（7 部分输出）
+│   ├── circuit-generation-template.md   # v1：参数化生成模板（7 部分输出）
+│   ├── circuit-generation-template-v2.md # v2：强化导入布局（8 部分，多一张网格坐标表）
 │   ├── circuit-review-prompt.md         # PR 前自检提示词（7 项 PASS/FAIL）
 │   └── README.md                        # 占位符填写规范 + 示例
 ├── circuits/                      # 电路库，一个目录一个电路
 │   ├── _template/                 # 新电路目录模板（复制即用）
 │   │   ├── TEMPLATE.cir           # 网表骨架（含行序与注释规范）
-│   │   ├── README.md              # 7 部分输出 + front-matter 规范
+│   │   ├── README.md              # 3a 网格坐标表 + 3b ASCII 图等 8 部分
 │   │   ├── prompt-used.md         # 本次实际使用的提示词（可复现）
 │   │   └── verification.md        # 理论值 / 实测值 / 状态标签
 │   ├── 001-bjt-switch-led/
@@ -178,7 +194,7 @@ python scripts/build_index.py --write
 python scripts/build_index.py --check
 ```
 
-`cir_lint` 的 7 条规则见 [`scripts/cir_lint.py`](./scripts/cir_lint.py) 文件头，CI 配置见
+`cir_lint` 的 16 条规则（9 error / 6 warn / 1 info）见 [`scripts/cir_lint.py`](./scripts/cir_lint.py) 文件头，CI 配置见
 [`.github/workflows/lint.yml`](./.github/workflows/lint.yml)。
 
 ---
@@ -198,7 +214,7 @@ floating node、LED 不亮、555 不振…）统一收录在 **[`docs/faq.md`](.
 |------|---------|
 | 电路库 / 详情 | 浏览三个种子电路的完整网表、元件表、连线表、仪器设置、理论值 |
 | 提示词生成器 | 填 12 个字段，实时拼出完整生成提示词，一键复制 |
-| 在线检查 | 粘贴 `.cir`，浏览器内跑 13 条硬约束（`cir_lint.py` 的 TS 移植），逐条定位错误 |
+| 在线检查 | 粘贴 `.cir`，浏览器内跑 16 条规则（`cir_lint.py` 的 TS 移植），逐条定位错误 |
 | 元件库速查 | `Group / Family / Component` 三级路径，支持搜索 |
 | FAQ / 工作流 | 12 条高频问答、八步贡献流程、PR 前 7 项自检 |
 

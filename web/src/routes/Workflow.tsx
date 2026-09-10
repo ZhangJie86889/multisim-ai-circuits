@@ -4,12 +4,12 @@ import { REPO_URL, REPO_BRANCH } from "../config";
 
 const STEPS: { t: string; d: string; who: "AI" | "人工" | "CI" }[] = [
   { t: "① 提 Issue 填需求", who: "人工", d: "用 .github/ISSUE_TEMPLATE/circuit-request.md 描述电路，表单字段与提示词占位符一一对应。" },
-  { t: "② 复制并填写模板", who: "人工", d: "打开 prompts/circuit-generation-template.md，替换 12 个 {{占位符}}。可先用本站的提示词生成器。" },
-  { t: "③ 丢给任意 AI", who: "AI", d: "DeepSeek / 通义 / GPT / Claude / 豆包皆可，得到严格 7 部分输出。" },
+  { t: "② 复制并填写模板", who: "人工", d: "打开 prompts/circuit-generation-template.md（v1）或 circuit-generation-template-v2.md（强化摆放，推荐），替换 12 个 {{占位符}}。可先用本站的提示词生成器。" },
+  { t: "③ 丢给任意 AI", who: "AI", d: "DeepSeek / 通义 / GPT / Claude / 豆包皆可，得到严格 7 部分（v1）或 8 部分（v2，多一张 3a 网格坐标表）输出。" },
   { t: "④ Multisim File → Open 导入", who: "人工", d: "把第 1 部分的 .cir 存盘导入，做黑盒替换，按 ASCII 图摆位、连线、加网络标签。" },
   { t: "⑤ 人工仿真验证", who: "人工", d: "在真实 Multisim 14.3 里跑，用 Grapher 游标记录实测值——这一步 AI 不参与，最关键。" },
   { t: "⑥ 填 verification.md 并提 PR", who: "人工", d: "理论与实践值分列，status 按实情填写（没实测不许改成已验证）。" },
-  { t: "⑦ CI 自动跑 cir_lint", who: "CI", d: "push/PR 触发 .github/workflows/lint.yml，13 条硬约束全过才允许合并。" },
+  { t: "⑦ CI 自动跑 cir_lint", who: "CI", d: "push/PR 触发 .github/workflows/lint.yml，16 条规则全过才允许合并（info 级排版提示不影响通过）。" },
   { t: "⑧ 合并 + 刷新索引", who: "CI", d: "build_index.py 更新 README 索引表，电路正式入库。" },
 ];
 

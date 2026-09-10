@@ -14,6 +14,8 @@ export type WireRow = { n: number; from: string; to: string; net?: string };
 export type TheoryRow = { param: string; formula: string; value: string; unit?: string };
 export type Pitfall = { title: string; effect: string };
 export type InstrumentRow = { name: string; terminals: string; panel: string };
+/** v2 的 3a 网格坐标表：Multisim 默认栅格 0.1 inch = 1 格，相对坐标 */
+export type GridRow = { ref: string; x: number; y: number; rot: string; note: string };
 
 export type Circuit = {
   slug: string;
@@ -28,6 +30,8 @@ export type Circuit = {
   filename: string;
   cir: string;
   parts: PartRow[];
+  /** 3a 网格坐标表（v2 格式）。连线表的「建议走线方向」以 README 为准，不在网页重复。 */
+  grid: GridRow[];
   ascii: string;
   importSteps: string[];
   wires: WireRow[];
@@ -124,6 +128,15 @@ export const circuits: Circuit[] = [
       { ref: "VCC", path: "Sources / POWER_SOURCES / DC_POWER", params: "5 V", note: "网络名 VCC" },
       { ref: "GND", path: "Sources / POWER_SOURCES / GROUND", params: "—", note: "必须放，否则报 floating node" },
     ],
+    grid: [
+      { ref: "VIN", x: 0, y: 3, rot: "0°", note: "最左，脉冲信号源" },
+      { ref: "RB", x: 4, y: 3, rot: "0°", note: "与 VIN 同行（主信号链）" },
+      { ref: "Q1", x: 9, y: 3, rot: "0°", note: "TO-92，E 下 / B 中 / C 上" },
+      { ref: "DLED", x: 9, y: 2, rot: "90°", note: "Q1 正上方，阴极朝上（朝 RC）" },
+      { ref: "RC", x: 9, y: 1, rot: "90°", note: "再往上一格" },
+      { ref: "VCC", x: 9, y: 0, rot: "0°", note: "顶部电源符号，正对 RC 上端" },
+      { ref: "GND", x: 9, y: 5, rot: "0°", note: "底部地符号（VIN 负端与 Q1 发射极共用）" },
+    ],
     ascii: `                    +5 V (VCC)
                         |
                    RC 1k  (90° 竖放)
@@ -215,6 +228,21 @@ export const circuits: Circuit[] = [
       { ref: "RL", path: "Basic / RESISTOR", params: "10k 负载", note: "OUT → GND" },
       { ref: "VCC", path: "Sources / POWER_SOURCES / DC_POWER", params: "12 V", note: "网络名 VCC" },
       { ref: "GND", path: "Sources / POWER_SOURCES / GROUND", params: "—", note: "必须放" },
+    ],
+    grid: [
+      { ref: "VIN", x: 0, y: 4, rot: "0°", note: "最左，正弦信号源" },
+      { ref: "C1", x: 3, y: 4, rot: "0°", note: "输入耦合，+ 极朝右（朝 BASE）" },
+      { ref: "R1", x: 6, y: 2, rot: "90°", note: "上偏置：VCC → BASE" },
+      { ref: "R2", x: 6, y: 8, rot: "90°", note: "下偏置：BASE → GND（与 R1 同列）" },
+      { ref: "Q1", x: 9, y: 4, rot: "0°", note: "E 下 / B 左 / C 上" },
+      { ref: "RC", x: 9, y: 2, rot: "90°", note: "集电极电阻：VCC → COL（Q1 正上方）" },
+      { ref: "RE1", x: 9, y: 7, rot: "90°", note: "射极交流负反馈（不可旁路），Q1 正下方" },
+      { ref: "RE2", x: 9, y: 9, rot: "90°", note: "与 RE1 串成同一条竖线" },
+      { ref: "CE", x: 12, y: 9, rot: "90°", note: "并在 RE2 两端（+ 极朝上）" },
+      { ref: "C2", x: 13, y: 4, rot: "0°", note: "输出耦合，+ 极朝左（朝 COL）" },
+      { ref: "RL", x: 16, y: 4, rot: "90°", note: "输出负载：OUT → GND" },
+      { ref: "VCC", x: 6, y: 0, rot: "0°", note: "顶部电源符号，正对 R1 上端" },
+      { ref: "GND", x: 9, y: 11, rot: "0°", note: "底部地符号（R2 / RE2 / CE / RL 共用）" },
     ],
     ascii: `                    +12 V (VCC)
                         |
@@ -327,6 +355,17 @@ IN o—||——+          |               |         |
       { ref: "RL", path: "Basic / RESISTOR", params: "10k", note: "OUT → GND，输出负载" },
       { ref: "VCC", path: "Sources / POWER_SOURCES / DC_POWER", params: "5 V", note: "网络名 VCC" },
       { ref: "GND", path: "Sources / POWER_SOURCES / GROUND", params: "—", note: "必须放" },
+    ],
+    grid: [
+      { ref: "XU1", x: 8, y: 4, rot: "0°", note: "DIP-8，缺口朝左；1=GND 2=TRIG 3=OUT 4=RESET 5=CTRL 6=THR 7=DIS 8=VCC" },
+      { ref: "RA", x: 8, y: 1, rot: "90°", note: "VCC → DIS(7)，芯片右上方" },
+      { ref: "RB", x: 12, y: 2, rot: "0°", note: "DIS(7) → THR(6)，横放" },
+      { ref: "CT", x: 12, y: 6, rot: "90°", note: "THR → GND，定时电容（决定频率）" },
+      { ref: "CC", x: 15, y: 6, rot: "90°", note: "CTRL(5) → GND，去耦（不接会频偏）" },
+      { ref: "RPU", x: 5, y: 1, rot: "90°", note: "VCC → RESET(4)，芯片左上方" },
+      { ref: "RL", x: 3, y: 7, rot: "90°", note: "OUT(3) → GND，输出负载" },
+      { ref: "VCC", x: 8, y: 0, rot: "0°", note: "顶部电源符号" },
+      { ref: "GND", x: 8, y: 10, rot: "0°", note: "底部地符号" },
     ],
     ascii: `                        +5 V (VCC)
                             |
