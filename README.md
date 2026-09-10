@@ -150,6 +150,7 @@ v2 新增 4 条硬约束：**网络标签优先**（节点名语义化，远距�
 | 001 | [BJT 开关驱动 LED](circuits/001-bjt-switch-led/README.md) | 入门 | 🟡 待验证 | 2N2222 饱和开关驱动红色 LED，验证 Ib/Ic/Vce(sat) 与开关波形 |
 | 002 | [共射极放大器](circuits/002-common-emitter-amp/README.md) | 入门 | 🟡 待验证 | 2N2222 分压偏置共射放大，阻容耦合，增益 ≥ 20，下限频率约 10 Hz |
 | 003 | [NE555 多谐振荡器](circuits/003-555-astable/README.md) | 进阶 | 🟡 待验证 | NE555 无稳态方波输出，约 1 kHz，占空比约 53%，需黑盒替换为库件 LM555CN |
+| 004 | [一阶 RC 低通滤波器](circuits/004-rc-lowpass/README.md) | 入门 | 🟡 待验证 | 无源一阶 RC 低通，截止频率约 1.59 kHz，滚降约 -20 dB/十倍频 |
 <!-- CIRCUIT-INDEX:END -->
 
 **验证状态图例**：🟢 已验证（人工跑通并附实测值） · 🟡 待验证（lint 通过但未经人工仿真） · 🔴 验证失败（已知问题，见 verification.md）

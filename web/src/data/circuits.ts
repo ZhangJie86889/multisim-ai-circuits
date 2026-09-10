@@ -104,6 +104,18 @@ VCC VCC 0 5
 .END
 `;
 
+const CIR_004 = `* 004-RC-LOWPASS: FIRST-ORDER RC LOW-PASS FILTER, FC ABOUT 1.59 KHZ, ANSI, MULTISIM 14.3
+* FILE: 004-rc-lowpass.cir    ENCODING: ANSI (7-BIT ASCII)
+* SIGNAL FLOW: VIN -> R1 -> C1
+VIN IN 0 AC 1 SIN(0 1 1000)
+R1 IN OUT 1k
+C1 OUT 0 100n
+.OP
+.AC DEC 10 10 100k
+.TRAN 1u 5m 0 1u
+.END
+`;
+
 export const circuits: Circuit[] = [
   {
     slug: "001-bjt-switch-led",
@@ -444,6 +456,78 @@ IN o—||——+          |               |         |
       { title: "忘记把 THR(6) 与 TRIG(2) 短接", effect: "电容能充到 2/3 VCC 让输出变低，但触发比较器永远不翻转 → 输出卡在低电平不动，V(THR) 在 1.67 V 附近小幅摆动。" },
       { title: "RA 与 RB 位置对调", effect: "仍振荡但 f 变 1.71 kHz、占空比变 90.5 %，输出是一串很窄的负脉冲。" },
       { title: "RESET(4) 悬空或误接地", effect: "悬空时随机复位 → 间歇性停振；接地时完全不振，输出恒低 ≈ 0 V，V(THR) 停在 2.5 V 左右。" },
+    ],
+  },
+  {
+    slug: "004-rc-lowpass",
+    id: "004",
+    name: "一阶 RC 低通滤波器",
+    nameEn: "First-order RC low-pass filter, fc about 1.59 kHz",
+    difficulty: "入门",
+    status: "待验证",
+    summary: "无源一阶 RC 低通，截止频率约 1.59 kHz，滚降约 −20 dB/十倍频",
+    signalFlow: ["VIN", "R1", "C1"],
+    instruments: "XFG1 · XSC1",
+    filename: "004-rc-lowpass.cir",
+    cir: CIR_004,
+    notes: "R1 = 1 kΩ 串联输入，C1 = 100 nF 对地，输出从 OUT 对地测量。理论时间常数为 100 µs，截止频率约 1.59 kHz。",
+    parts: [
+      { ref: "VIN", path: "Sources / SIGNAL_VOLTAGE_SOURCES / AC_VOLTAGE", params: "1 V 峰值，1 kHz 正弦", note: "AC 1 用于 AC 分析" },
+      { ref: "R1", path: "Basic / RESISTOR", params: "1k", note: "串联输入电阻" },
+      { ref: "C1", path: "Basic / CAPACITOR", params: "100n", note: "OUT 节点到 GND" },
+      { ref: "GND", path: "Sources / POWER_SOURCES / GROUND", params: "—", note: "必须放置" },
+    ],
+    grid: [
+      { ref: "VIN", x: 0, y: 3, rot: "0°", note: "最左，交流信号源" },
+      { ref: "R1", x: 4, y: 3, rot: "0°", note: "与 VIN 同行，串联" },
+      { ref: "C1", x: 9, y: 3, rot: "90°", note: "OUT 节点向下接地" },
+      { ref: "GND", x: 9, y: 5, rot: "0°", note: "C1 下端接地" },
+    ],
+    ascii: `                         C1 100n
+                           |
+VIN / XFG1 + o--- R1 1k ---+--- OUT / XSC1 CH B +
+       (0°)                |
+                         GND
+
+XFG1 - / XSC1 CH A - ---------------- GND`,
+    importSteps: [
+      "从 Sources / SIGNAL_VOLTAGE_SOURCES / AC_VOLTAGE 放置 VIN，设置 Sine、1 kHz、Amplitude 1 Vpk、Offset 0 V。",
+      "放置 R1 与 C1，按网格坐标摆位；C1 竖放，接在 OUT 与 GND 之间。",
+      "连接 VIN(+) → R1 → OUT，再连接 OUT → C1 → GND；VIN 负端接 GND。",
+      "放置 IN / OUT 网络标签，并把示波器两路负端接 GND。",
+      "重设 AC（10 Hz–100 kHz、每十倍频 10 点）和 Transient（0–5 ms、最大步长 1 us）。",
+    ],
+    wires: [
+      { n: 1, from: "XFG1 + / VIN 正端", to: "R1 左端", net: "IN" },
+      { n: 2, from: "R1 右端", to: "C1 上端", net: "OUT" },
+      { n: 3, from: "C1 下端", to: "GND" },
+      { n: 4, from: "XFG1 -", to: "GND" },
+      { n: 5, from: "XSC1 CH A +", to: "IN", net: "IN" },
+      { n: 6, from: "XSC1 CH B +", to: "OUT", net: "OUT" },
+      { n: 7, from: "XSC1 CH A/B -", to: "GND" },
+    ],
+    instrumentsSetup: [
+      { name: "XFG1", terminals: "+ → IN，- / COM → GND", panel: "Sine · 1 kHz · Amplitude 1 Vpk · Offset 0 V" },
+      { name: "XSC1 CH A", terminals: "+ → IN，- → GND", panel: "500 mV/Div，DC 耦合" },
+      { name: "XSC1 CH B", terminals: "+ → OUT，- → GND", panel: "500 mV/Div，DC 耦合" },
+    ],
+    grapher: [
+      "Transient Analysis：End time 5 ms、Maximum time step 1 us，Output 加 V(IN)、V(OUT)。",
+      "AC Analysis：在 Magnitude 页找输出降到 0.707 倍低频值的位置，即 fc；Phase 页应约为 −45°。",
+      "把频率提高十倍后，输出应再下降约 20 dB；低频区 V(OUT) 与 V(IN) 幅值接近。",
+    ],
+    theory: [
+      { param: "时间常数 τ", formula: "R1 × C1", value: "100", unit: "µs" },
+      { param: "截止频率 fc", formula: "1 / (2πR1C1)", value: "1.59", unit: "kHz" },
+      { param: "fc 处幅值比", formula: "1 / √2", value: "0.707", unit: "−3.01 dB" },
+      { param: "fc 处相位", formula: "−atan(1)", value: "−45", unit: "°" },
+      { param: "10 kHz 幅值比", formula: "1 / √(1 + (10k/1.59k)^2)", value: "0.157", unit: "−16.1 dB" },
+      { param: "高频滚降", formula: "每十倍频", value: "−20", unit: "dB/dec" },
+    ],
+    pitfalls: [
+      { title: "C1 下端未接 GND", effect: "输出节点悬空或报 floating node，频响不可信。" },
+      { title: "C1 并到 VIN 而不是 OUT", effect: "输出取样关系错误，波形明显衰减，不能按低通输出解释。" },
+      { title: "R1 或 C1 单位写错", effect: "截止频率按比例偏移；例如 C1 误用 100u 时 fc 约 0.016 Hz。" },
     ],
   },
 ];
