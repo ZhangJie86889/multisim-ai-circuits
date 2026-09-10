@@ -1,0 +1,25 @@
+{
+  "name": "multisim-ai-circuits-web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "multisim-ai-circuits 的静态站点：电路浏览 / 提示词生成 / 在线网表检查",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "check-data": "python ../scripts/check_web_data.py"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.2",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}
