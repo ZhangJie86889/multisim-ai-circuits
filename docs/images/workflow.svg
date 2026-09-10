@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 918" width="780" height="918" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <title>multisim-ai-circuits 工作流程图（八步闭环）</title>
+  <desc>从提 Issue 到合并入库的八步流程，按人工、AI、CI 三类角色着色；第五步人工仿真验证是分水岭，第七步 CI 全过后才能合并，未通过则退回第三步重新生成。</desc>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <rect width="780" height="918" fill="#ffffff"/>
+
+  <text x="70" y="24" font-size="16" font-weight="600" fill="#2C2C2A">工作流程图 · 八步闭环</text>
+
+  <line x1="340" y1="102" x2="340" y2="134" stroke="#888780" stroke-width="1.5" marker-end="url(#ah)"/>
+  <line x1="340" y1="198" x2="340" y2="230" stroke="#888780" stroke-width="1.5" marker-end="url(#ah)"/>
+  <line x1="340" y1="294" x2="340" y2="326" stroke="#888780" stroke-width="1.5" marker-end="url(#ah)"/>
+  <line x1="340" y1="390" x2="340" y2="422" stroke="#888780" stroke-width="1.5" marker-end="url(#ah)"/>
+  <line x1="340" y1="486" x2="340" y2="518" stroke="#888780" stroke-width="1.5" marker-end="url(#ah)"/>
+  <line x1="340" y1="582" x2="340" y2="614" stroke="#888780" stroke-width="1.5" marker-end="url(#ah)"/>
+  <line x1="340" y1="678" x2="340" y2="696" stroke="#888780" stroke-width="1.5" marker-end="url(#ah)"/>
+  <line x1="340" y1="762" x2="340" y2="796" stroke="#888780" stroke-width="1.5" marker-end="url(#ah)"/>
+
+  <polyline points="450,729 700,729 700,263 614,263" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#ah)"/>
+  <text x="462" y="719" font-size="13" fill="#993C1D" font-weight="600">否 → 重新生成</text>
+  <text x="350" y="784" font-size="13" fill="#0F6E56" font-weight="600">是</text>
+
+  <rect x="70" y="40" width="540" height="62" rx="10" fill="#FAEEDA" stroke="#BA7517" stroke-width="1.2"/>
+  <rect x="84" y="60" width="54" height="22" rx="11" fill="#FAC775"/>
+  <text x="111" y="75" font-size="12" fill="#412402" text-anchor="middle" font-weight="600">人工</text>
+  <text x="152" y="64" font-size="15" font-weight="600" fill="#2C2C2A">① 提 Issue 填需求</text>
+  <text x="152" y="84" font-size="12.5" fill="#5F5E5A">用 .github/ISSUE_TEMPLATE/circuit-request.md 描述电路</text>
+
+  <rect x="70" y="136" width="540" height="62" rx="10" fill="#FAEEDA" stroke="#BA7517" stroke-width="1.2"/>
+  <rect x="84" y="156" width="54" height="22" rx="11" fill="#FAC775"/>
+  <text x="111" y="171" font-size="12" fill="#412402" text-anchor="middle" font-weight="600">人工</text>
+  <text x="152" y="160" font-size="15" font-weight="600" fill="#2C2C2A">② 复制模板，填 12 个占位符</text>
+  <text x="152" y="180" font-size="12.5" fill="#5F5E5A">prompts/circuit-generation-template(-v2).md</text>
+
+  <rect x="70" y="232" width="540" height="62" rx="10" fill="#E6F1FB" stroke="#378ADD" stroke-width="1.2"/>
+  <rect x="84" y="252" width="54" height="22" rx="11" fill="#B5D4F4"/>
+  <text x="111" y="267" font-size="12" fill="#042C53" text-anchor="middle" font-weight="600">AI</text>
+  <text x="152" y="256" font-size="15" font-weight="600" fill="#2C2C2A">③ 丢给任意大模型</text>
+  <text x="152" y="276" font-size="12.5" fill="#5F5E5A">得到严格 7 部分（v1）或 8 部分（v2）输出</text>
+
+  <rect x="70" y="328" width="540" height="62" rx="10" fill="#FAEEDA" stroke="#BA7517" stroke-width="1.2"/>
+  <rect x="84" y="348" width="54" height="22" rx="11" fill="#FAC775"/>
+  <text x="111" y="363" font-size="12" fill="#412402" text-anchor="middle" font-weight="600">人工</text>
+  <text x="152" y="352" font-size="15" font-weight="600" fill="#2C2C2A">④ Multisim「File → Open」导入</text>
+  <text x="152" y="372" font-size="12.5" fill="#5F5E5A">黑盒替换库件 · 按 3a 网格坐标表摆位 · 连线打标签</text>
+
+  <rect x="70" y="424" width="540" height="62" rx="10" fill="#FAEEDA" stroke="#993C1D" stroke-width="2.4"/>
+  <rect x="84" y="444" width="54" height="22" rx="11" fill="#FAC775"/>
+  <text x="111" y="459" font-size="12" fill="#412402" text-anchor="middle" font-weight="600">人工</text>
+  <text x="152" y="448" font-size="15" font-weight="600" fill="#2C2C2A">⑤ 人工仿真验证 ★ 分水岭</text>
+  <text x="152" y="468" font-size="12.5" fill="#993C1D">在真实 Multisim 14.3 里跑，Grapher 游标记录实测值 —— 这一步 AI 不参与</text>
+
+  <rect x="70" y="520" width="540" height="62" rx="10" fill="#FAEEDA" stroke="#BA7517" stroke-width="1.2"/>
+  <rect x="84" y="540" width="54" height="22" rx="11" fill="#FAC775"/>
+  <text x="111" y="555" font-size="12" fill="#412402" text-anchor="middle" font-weight="600">人工</text>
+  <text x="152" y="544" font-size="15" font-weight="600" fill="#2C2C2A">⑥ 填 verification.md 并提 PR</text>
+  <text x="152" y="564" font-size="12.5" fill="#5F5E5A">理论与实测值分列；没实测不许把 status 改成「已验证」</text>
+
+  <rect x="70" y="616" width="540" height="62" rx="10" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1.2"/>
+  <rect x="84" y="636" width="54" height="22" rx="11" fill="#9FE1CB"/>
+  <text x="111" y="651" font-size="12" fill="#04342C" text-anchor="middle" font-weight="600">CI</text>
+  <text x="152" y="640" font-size="15" font-weight="600" fill="#2C2C2A">⑦ CI 自动检查</text>
+  <text x="152" y="660" font-size="12.5" fill="#5F5E5A">cir_lint.py（16 条规则）+ build_index --check + check_web_data</text>
+
+  <polygon points="340,698 450,729 340,760 230,729" fill="#F1EFE8" stroke="#888780" stroke-width="1.2"/>
+  <text x="340" y="734" font-size="14" font-weight="600" fill="#2C2C2A" text-anchor="middle">全部通过？</text>
+
+  <rect x="70" y="796" width="540" height="62" rx="10" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1.2"/>
+  <rect x="84" y="816" width="54" height="22" rx="11" fill="#9FE1CB"/>
+  <text x="111" y="831" font-size="12" fill="#04342C" text-anchor="middle" font-weight="600">CI</text>
+  <text x="152" y="820" font-size="15" font-weight="600" fill="#2C2C2A">⑧ 合并 + 刷新索引</text>
+  <text x="152" y="840" font-size="12.5" fill="#5F5E5A">build_index.py 更新 README 索引表，电路正式入库</text>
+
+  <line x1="70" y1="880" x2="700" y2="880" stroke="#D3D1C7" stroke-width="1"/>
+  <rect x="70" y="892" width="42" height="16" rx="8" fill="#FAC775"/>
+  <text x="120" y="904" font-size="12" fill="#5F5E5A">人工（AI 无法替代）</text>
+  <rect x="270" y="892" width="42" height="16" rx="8" fill="#B5D4F4"/>
+  <text x="320" y="904" font-size="12" fill="#5F5E5A">AI 生成网表与文档</text>
+  <rect x="480" y="892" width="42" height="16" rx="8" fill="#9FE1CB"/>
+  <text x="530" y="904" font-size="12" fill="#5F5E5A">CI 自动门禁</text>
+</svg>

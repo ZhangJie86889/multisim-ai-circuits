@@ -34,38 +34,60 @@
 
 ## 二、工作流程图
 
+> 🔍 **嫌 GitHub 上看着小就点开图**（点图会打开矢量版 [`docs/images/workflow.svg`](./docs/images/workflow.svg)，
+> 可无限放大）。图按 **人工 / AI / CI** 三类角色着色——第 ⑤ 步「人工仿真验证」是分水岭，任何人都替代不了。
+
+[![工作流程图：八步闭环，按人工 / AI / CI 着色](./docs/images/workflow.png)](./docs/images/workflow.svg)
+
+<details>
+<summary>展开可编辑的 Mermaid 源码（竖排 TD；原先是 <code>flowchart LR</code>，9 个节点横排会被 GitHub 缩到看不清）</summary>
+
 ```mermaid
-flowchart LR
-  A["① 提 Issue<br/>填 circuit-request 表单"] --> B["② 复制 prompts/ 模板<br/>填 {{占位符}}"]
-  B --> C["③ 丢给任意 AI<br/>得到 7 部分输出"]
-  C --> D["④ Multisim File→Open<br/>导入 .cir + 整理"]
-  D --> E["⑤ 人工仿真验证<br/>记录 Grapher 实测值"]
-  E --> F["⑥ 提 PR<br/>含 verification.md"]
-  F --> G["⑦ CI 跑 cir_lint.py"]
-  G --> H{"通过?"}
-  H -- 否 --> C
-  H -- 是 --> I["⑧ 合并 + build_index 更新索引"]
+flowchart TD
+  A["① 提 Issue 填需求<br/>用 circuit-request 表单"] --> B["② 复制模板<br/>填 12 个 {{占位符}}"]
+  B --> C["③ 丢给任意大模型<br/>得到 7 部分（v1）/ 8 部分（v2）"]
+  C --> D["④ Multisim File → Open 导入<br/>黑盒替换 · 按 3a 坐标摆位 · 连线"]
+  D --> E["⑤ 人工仿真验证 ★ 分水岭<br/>Grapher 游标记录实测值"]
+  E --> F["⑥ 填 verification.md 并提 PR<br/>理论与实践值分列"]
+  F --> G["⑦ CI 自动检查<br/>cir_lint + build_index + check_web_data"]
+  G --> H{"全部通过？"}
+  H -- 否，重新生成 --> C
+  H -- 是 --> I["⑧ 合并 + 刷新索引<br/>build_index.py 更新 README"]
 ```
 
-ASCII 版（无 Mermaid 渲染时）：
+</details>
+
+**ASCII 版**（图完全渲染不出来时兜底用）：
 
 ```
-[提 Issue 填需求]
+ ① 提 Issue 填需求                                        [人工]
         |
         v
-[复制 prompts/circuit-generation-template.md，填占位符]
+ ② 复制模板，填 12 个占位符                                [人工]
         |
         v
-[丢给任意 AI] ---> 7 部分输出：网表 / 元件表 / 布局图 / 整理步骤 / 连线表 / 仪器设置 / 验证值
+ ③ 丢给任意大模型  ──> 7 部分（v1）/ 8 部分（v2）输出        [AI]
         |
         v
-[Multisim File -> Open 导入 .cir] --> [黑盒替换 + 摆位 + 连线 + 网络标签]
+ ④ Multisim「File → Open」导入                             [人工]
+    黑盒替换库件 · 按 3a 网格坐标表摆位 · 连线打网络标签
         |
         v
-[跑仿真，Grapher 读数]  <---- 人工，AI 不参与
+ ⑤ 人工仿真验证 ★ 分水岭    <──── 这一步 AI 不参与          [人工]
+    在真实 Multisim 14.3 里跑，Grapher 游标记录实测值
         |
         v
-[填 verification.md 实测值] --> [提 PR] --> [CI: cir_lint.py] --> [合并] --> [build_index.py 刷新索引]
+ ⑥ 填 verification.md 并提 PR                              [人工]
+        |
+        v
+ ⑦ CI 自动检查（16 条规则 + 索引表 + web 数据同步）          [CI]
+        |
+        v
+   全部通过？ ──否──> 回到 ③ 重新生成
+        |
+       是
+        v
+ ⑧ 合并 + build_index.py 刷新索引，电路正式入库             [CI]
 ```
 
 ---

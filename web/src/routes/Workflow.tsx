@@ -43,6 +43,18 @@ export function Workflow() {
         第 ⑤ 步（真实 Multisim 仿真）是分水岭，任何 AI 都无法替代。
       </p>
 
+      <figure style={{ margin: "18px 0 0" }}>
+        <img
+          src="./images/workflow.svg"
+          alt="工作流程图：八步闭环，按人工、AI、CI 三类角色着色"
+          style={{ width: "100%", maxWidth: 780, height: "auto", border: "1px solid var(--border)", borderRadius: "var(--radius)" }}
+        />
+        <figcaption className="small muted" style={{ marginTop: 6 }}>
+          图按 <strong>人工 / AI / CI</strong> 三类角色着色；矢量图，放大不糊。
+          仓库里同一张图在 <span className="mono">docs/images/workflow.svg</span>。
+        </figcaption>
+      </figure>
+
       <div className="table-wrap" style={{ marginTop: 18 }}>
         <table className="data">
           <thead>
